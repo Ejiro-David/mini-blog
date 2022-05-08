@@ -4,32 +4,39 @@ import Bloglist from "./Bloglist";
 
 
 const Home = () => {
-   const [blog, setBlogs] = useState([
-    { title: 'My new website', body: 'lorem ipsum...', author: 'mario', id: 1 },
-    { title: 'Welcome party!', body: 'lorem ipsum...', author: 'yoshi', id: 2 },
-    { title: 'Web dev top tips', body: 'lorem ipsum...', author: 'mario', id: 3 }
-   ]);
 
-const [name, setName] = useState('ejiro');
+    const [blog, setBlogs] = useState(null);
+    const [isPending, setIsPending] = useState(true)
+    const [errMessage, setErrMessage] = useState(null);
 
 
-
-   const handleDelete = (id) => {
-       const newBlogs = blog.filter((blog) => (
-           blog.id !== id
-       ));
-       setBlogs(newBlogs)
-   }
+ 
 
    useEffect(() => {
-       console.log('use effect ran ') 
-   }, [name])
+        fetch('http://localhost:8000/blogs')
+            .then(res => {
+                console.log(res)
+                if(!res.ok ){
+                    throw Error('data resource not okay')
+                }return res.json() ;
+                
+            })
+            .then((data) => {
+                 setBlogs(data)
+                 setIsPending(false)
+
+            })
+            .catch((err) => {
+                setErrMessage(err.message);
+                setIsPending(false)
+            })
+   }, [])
 
    return(
        <div className="home">
-           <Bloglist blog= {blog} title="All Blogs" handleDelete={handleDelete}/>
-           <button onClick={() => {setName('a-willow')}}>change name</button>
-           <p>{name}</p>
+           {isPending && <p>loading....</p>}
+           {errMessage && <div>{errMessage}</div> }
+           {blog && < Bloglist blog= {blog} title="All Blogs"/>}
        </div>
    );
 }
